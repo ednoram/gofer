@@ -78,9 +78,10 @@ func UpdateTask(c *gin.Context) {
 		return
 	}
 
+	updateTime := time.Now().UTC().Format("2006-01-02T15:04:05")
 	_, err := db.GetConn().Exec(
 		"UPDATE task SET title = ?, description = ?, completed = ?, updated_at = ? WHERE task_id = ?",
-		task.Title, task.Description, task.Completed, time.Now(), id,
+		task.Title, task.Description, task.Completed, updateTime, id,
 	)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
