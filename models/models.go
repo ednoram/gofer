@@ -1,19 +1,24 @@
 package models
 
+import "time"
+
 type Task struct {
-	TaskId      int    `json:"task_id"`
-	Title       string `json:"title"`
-	Description string `json:"description"`
-	Completed   bool   `json:"completed"`
+	TaskId      int       `json:"task_id"`
+	Title       string    `json:"title"`
+	Description string    `json:"description"`
+	Completed   bool      `json:"completed"`
+	CreatedBy   int       `json:"created_by"`
+	CreatedAt   time.Time `json:"created_at"`
+	UpdatedAt   time.Time `json:"updated_at"`
 }
 
 type APIKey struct {
-	KeyID  int    `json:"key_id"`
-	Key    string `json:"key"`
-	UserID int    `json:"user_id"`
+	KeyId  int
+	ApiKey string
+	UserId int
 }
 
 type User struct {
-	UserID int    `json:"user_id"`
+	UserId int    `json:"user_id"`
 	Name   string `json:"name"`
 }

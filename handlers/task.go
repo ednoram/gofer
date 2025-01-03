@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"net/http"
+	"time"
 
 	"github.com/gin-gonic/gin"
 
@@ -16,19 +17,27 @@ func CreateTask(c *gin.Context) {
 		return
 	}
 
-	_, err := db.GetConn().Exec("INSERT INTO task (title, description, completed) VALUES ($1, $2, $3)", task.Title, task.Description, task.Completed)
+	userId, exists := c.Get("userId")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "User id required"})
+		return
+	}
+	_, err := db.GetConn().Exec(
+		"INSERT INTO task (title, description, completed, created_by) VALUES ($1, $2, $3, $4)",
+		task.Title, task.Description, task.Completed, userId,
+	)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create task"})
 		return
 	}
 
-	c.JSON(http.StatusCreated, task)
+	c.JSON(http.StatusCreated, gin.H{"message": "success"})
 }
 
 func GetTasks(c *gin.Context) {
 	var tasks []models.Task
 
-	rows, err := db.GetConn().Query("SELECT task_id, title, description, completed FROM task")
+	rows, err := db.GetConn().Query("SELECT task_id, title, description, completed, created_by, created_at, updated_at FROM task")
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
@@ -37,7 +46,7 @@ func GetTasks(c *gin.Context) {
 
 	for rows.Next() {
 		var task models.Task
-		if err := rows.Scan(&task.TaskId, &task.Title, &task.Description, &task.Completed); err != nil {
+		if err := rows.Scan(&task.TaskId, &task.Title, &task.Description, &task.Completed, &task.CreatedBy, &task.CreatedAt, &task.UpdatedAt); err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
 		}
@@ -50,9 +59,9 @@ func GetTasks(c *gin.Context) {
 func GetTask(c *gin.Context) {
 	id := c.Param("id")
 
-	row := db.GetConn().QueryRow("SELECT task_id, title, description, completed FROM task WHERE task_id = ?", id)
+	row := db.GetConn().QueryRow("SELECT task_id, title, description, completed, created_by, created_at, updated_at FROM task WHERE task_id = ?", id)
 	var task models.Task
-	err := row.Scan(&task.TaskId, &task.Title, &task.Description, &task.Completed)
+	err := row.Scan(&task.TaskId, &task.Title, &task.Description, &task.Completed, &task.CreatedBy, &task.CreatedAt, &task.UpdatedAt)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
@@ -69,7 +78,10 @@ func UpdateTask(c *gin.Context) {
 		return
 	}
 
-	_, err := db.GetConn().Exec("UPDATE task SET title = ?, description = ?, completed = ? WHERE task_id = ?", task.Title, task.Description, task.Completed, id)
+	_, err := db.GetConn().Exec(
+		"UPDATE task SET title = ?, description = ?, completed = ?, updated_at = ? WHERE task_id = ?",
+		task.Title, task.Description, task.Completed, time.Now(), id,
+	)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
