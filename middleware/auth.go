@@ -5,7 +5,6 @@ import (
 	"net/http"
 
 	"gofer/db"
-	"gofer/models"
 	"gofer/utils"
 )
 
@@ -18,17 +17,15 @@ func APIKeyAuthMiddleware() gin.HandlerFunc {
 			return
 		}
 
-		hashed_key := utils.HashAPIKey(apiKeyHeader)
+		hashedKey := utils.HashAPIKey(apiKeyHeader)
 
-		var apiKey models.APIKey
-		row := db.GetConn().QueryRow("SELECT user_id, api_key FROM api_key WHERE api_key = ?", hashed_key)
-		err := row.Scan(&apiKey.UserId, &apiKey.ApiKey)
+		apiKey, err := db.GetQueries().GetApiKey(c, hashedKey)
 		if err != nil {
 			c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
 			return
 		}
 
-		c.Set("userId", apiKey.UserId)
+		c.Set("userId", apiKey.UserID)
 
 		c.Next()
 	}

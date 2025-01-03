@@ -1,13 +1,13 @@
 -- schema.sql
 
 -- Create user table
-CREATE TABLE IF NOT EXISTS user (
+CREATE TABLE user (
   user_id INTEGER PRIMARY KEY AUTOINCREMENT,
   username TEXT NOT NULL UNIQUE
 );
 
 -- Create api key table
-CREATE TABLE IF NOT EXISTS api_key (
+CREATE TABLE api_key (
   key_id INTEGER PRIMARY KEY AUTOINCREMENT,
   api_key VARCHAR(50) NOT NULL UNIQUE,
   user_id INTEGER NOT NULL,
@@ -15,7 +15,7 @@ CREATE TABLE IF NOT EXISTS api_key (
 );
 
 -- Create task table
-CREATE TABLE IF NOT EXISTS task (
+CREATE TABLE task (
   task_id INTEGER PRIMARY KEY AUTOINCREMENT,
   title VARCHAR(30) NOT NULL,
   description TEXT,

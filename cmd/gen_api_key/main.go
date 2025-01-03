@@ -25,7 +25,7 @@ func generateAPIKey() (string, error) {
 func storeAPIKey(apiKey string, userId int) error {
 	hashedKey := utils.HashAPIKey(apiKey)
 
-	_, err := db.GetConn().Exec("INSERT INTO api_key (api_key, user_id) VALUES (?, ?)", hashedKey, userId)
+	_, err := db.GetDbConn().Exec("INSERT INTO api_key (api_key, user_id) VALUES (?, ?)", hashedKey, userId)
 	if err != nil {
 		return fmt.Errorf("Failed to insert API key: %v", err)
 	}
@@ -36,7 +36,7 @@ func main() {
 	var userId int = 1 // Change this to the user ID you want to generate API key for
 
 	db.InitializeDatabase()
-	defer db.GetConn().Close()
+	defer db.GetDbConn().Close()
 
 	apiKey, err := generateAPIKey()
 	if err != nil {

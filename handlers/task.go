@@ -1,88 +1,123 @@
 package handlers
 
 import (
+	"database/sql"
 	"net/http"
+	"strconv"
 	"time"
 
 	"github.com/gin-gonic/gin"
 
 	"gofer/db"
-	"gofer/models"
+	"gofer/db/sqlc"
+	"gofer/schemas"
 )
 
 func CreateTask(c *gin.Context) {
-	var task models.Task
-	if err := c.ShouldBindJSON(&task); err != nil {
+	var req schemas.CreateUpdateTask
+	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
-	userId, exists := c.Get("userId")
+	ctxUserId, exists := c.Get("userId")
 	if !exists {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "User id required"})
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "User ID required"})
 		return
 	}
-	_, err := db.GetConn().Exec(
-		"INSERT INTO task (title, description, completed, created_by) VALUES ($1, $2, $3, $4)",
-		task.Title, task.Description, task.Completed, userId,
-	)
+	userId, ok := ctxUserId.(int64)
+	if !ok {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid user ID"})
+		return
+	}
+
+	user, err := db.GetQueries().CreateTask(c, sqlc.CreateTaskParams{
+		Title:       req.Title,
+		Description: sql.NullString{String: req.Description},
+		Completed:   sql.NullBool{Bool: req.Completed},
+		CreatedBy:   userId,
+	})
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create task"})
 		return
 	}
 
-	c.JSON(http.StatusCreated, gin.H{"message": "success"})
+	c.JSON(http.StatusCreated, user)
 }
 
 func GetTasks(c *gin.Context) {
-	var tasks []models.Task
-
-	rows, err := db.GetConn().Query("SELECT task_id, title, description, completed, created_by, created_at, updated_at FROM task")
+	tasks, err := db.GetQueries().ListTasks(c)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
-	defer rows.Close()
 
-	for rows.Next() {
-		var task models.Task
-		if err := rows.Scan(&task.TaskId, &task.Title, &task.Description, &task.Completed, &task.CreatedBy, &task.CreatedAt, &task.UpdatedAt); err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-			return
-		}
-		tasks = append(tasks, task)
+	var taskResponses []schemas.TaskResponse
+	for _, task := range tasks {
+		taskResponses = append(taskResponses, schemas.TaskResponse{
+			TaskId:      task.TaskID,
+			Title:       task.Title,
+			Description: task.Description.String,
+			Completed:   task.Completed.Bool,
+			CreatedBy:   task.CreatedBy,
+			CreatedAt:   task.CreatedAt.Time,
+			UpdatedAt:   task.UpdatedAt.Time,
+		})
 	}
 
-	c.JSON(http.StatusOK, tasks)
+	c.JSON(http.StatusOK, taskResponses)
 }
 
 func GetTask(c *gin.Context) {
-	id := c.Param("id")
-
-	row := db.GetConn().QueryRow("SELECT task_id, title, description, completed, created_by, created_at, updated_at FROM task WHERE task_id = ?", id)
-	var task models.Task
-	err := row.Scan(&task.TaskId, &task.Title, &task.Description, &task.Completed, &task.CreatedBy, &task.CreatedAt, &task.UpdatedAt)
+	idParam := c.Param("id")
+	id, err := strconv.ParseInt(idParam, 10, 64)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-		return
-	}
-
-	c.JSON(http.StatusOK, task)
-}
-
-func UpdateTask(c *gin.Context) {
-	id := c.Param("id")
-	var task models.Task
-	if err := c.ShouldBindJSON(&task); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
-	updateTime := time.Now().UTC().Format("2006-01-02T15:04:05")
-	_, err := db.GetConn().Exec(
-		"UPDATE task SET title = ?, description = ?, completed = ?, updated_at = ? WHERE task_id = ?",
-		task.Title, task.Description, task.Completed, updateTime, id,
-	)
+	task, err := db.GetQueries().GetTask(c, id)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	taskResponse := schemas.TaskResponse{
+		TaskId:      task.TaskID,
+		Title:       task.Title,
+		Description: task.Description.String,
+		Completed:   task.Completed.Bool,
+		CreatedBy:   task.CreatedBy,
+		CreatedAt:   task.CreatedAt.Time,
+		UpdatedAt:   task.UpdatedAt.Time,
+	}
+
+	c.JSON(http.StatusOK, taskResponse)
+}
+
+func UpdateTask(c *gin.Context) {
+	idParam := c.Param("id")
+	id, err := strconv.ParseInt(idParam, 10, 64)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	var req schemas.CreateUpdateTask
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	updateTime := time.Now().UTC()
+
+	err = db.GetQueries().UpdateTask(c, sqlc.UpdateTaskParams{
+		TaskID:      id,
+		Title:       req.Title,
+		Description: sql.NullString{String: req.Description},
+		Completed:   sql.NullBool{Bool: req.Completed},
+		UpdatedAt:   sql.NullTime{Time: updateTime},
+	})
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
@@ -92,11 +127,18 @@ func UpdateTask(c *gin.Context) {
 }
 
 func DeleteTask(c *gin.Context) {
-	id := c.Param("id")
+	idParam := c.Param("id")
+	id, err := strconv.ParseInt(idParam, 10, 64)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
 
-	_, err := db.GetConn().Exec("DELETE FROM task WHERE task_id = ?", id)
+	err = db.GetQueries().DeleteTask(c, id)
+
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
 	}
 
 	c.JSON(http.StatusOK, gin.H{"message": "success"})
