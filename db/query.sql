@@ -19,8 +19,7 @@ set title = ?,
 description = ?,
 completed = ?,
 updated_at = ?
-WHERE task_id = ?
-RETURNING *;
+WHERE task_id = ?;
 
 -- name: DeleteTask :exec
 DELETE FROM task

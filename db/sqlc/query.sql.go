@@ -130,7 +130,6 @@ description = ?,
 completed = ?,
 updated_at = ?
 WHERE task_id = ?
-RETURNING task_id, title, description, completed, created_by, created_at, updated_at
 `
 
 type UpdateTaskParams struct {

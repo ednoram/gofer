@@ -114,9 +114,9 @@ func UpdateTask(c *gin.Context) {
 	err = db.GetQueries().UpdateTask(c, sqlc.UpdateTaskParams{
 		TaskID:      id,
 		Title:       req.Title,
-		Description: sql.NullString{String: req.Description},
-		Completed:   sql.NullBool{Bool: req.Completed},
-		UpdatedAt:   sql.NullTime{Time: updateTime},
+		Description: sql.NullString{String: req.Description, Valid: true},
+		Completed:   sql.NullBool{Bool: req.Completed, Valid: true},
+		UpdatedAt:   sql.NullTime{Time: updateTime, Valid: true},
 	})
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
