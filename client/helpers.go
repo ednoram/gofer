@@ -4,10 +4,11 @@ import (
 	"bytes"
 	"io"
 	"net/http"
+	"os"
 )
 
 var apiUrl string = "http://localhost:8080"
-var apiKey string = ""
+var apiKeyVarName string = "GOFER_API_KEY"
 
 func SendApiRequest(method string, path string, body []byte, params map[string]string) (string, error) {
 	req, err := http.NewRequest(method, apiUrl+path, bytes.NewBuffer(body))
@@ -16,6 +17,7 @@ func SendApiRequest(method string, path string, body []byte, params map[string]s
 	}
 
 	// API key for authentication
+	apiKey := os.Getenv(apiKeyVarName)
 	req.Header.Set("x-api-key", apiKey)
 
 	// Add query parameters to URL object
