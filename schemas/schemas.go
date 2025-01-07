@@ -3,8 +3,8 @@ package schemas
 import "time"
 
 type CreateUpdateTask struct {
-	Title       string `json:"title"`
-	Description string `json:"description"`
+	Title       string `json:"title" binding:"required"`
+	Description string `json:"description" binding:"max=100"`
 	Completed   bool   `json:"completed"`
 }
 

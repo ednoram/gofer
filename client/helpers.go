@@ -2,18 +2,20 @@ package client
 
 import (
 	"bytes"
-	"io"
+	"fmt"
+	"gofer/schemas"
 	"net/http"
 	"os"
+	"text/tabwriter"
 )
 
 var apiUrl string = "http://localhost:8080"
 var apiKeyVarName string = "GOFER_API_KEY"
 
-func SendApiRequest(method string, path string, body []byte, params map[string]string) (string, error) {
+func sendApiRequest(method string, path string, body []byte, params map[string]string) (*http.Response, error) {
 	req, err := http.NewRequest(method, apiUrl+path, bytes.NewBuffer(body))
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 
 	// API key for authentication
@@ -30,13 +32,29 @@ func SendApiRequest(method string, path string, body []byte, params map[string]s
 	httpClient := &http.Client{}
 	resp, err := httpClient.Do(req)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 
-	bodyBytes, err := io.ReadAll(resp.Body)
-	if err != nil {
-		return "", err
+	return resp, nil
+}
+
+func printTasks(tasks []schemas.TaskResponse) {
+	w := tabwriter.NewWriter(os.Stdout, 0, 0, 2, ' ', 0)
+
+	fmt.Fprintln(w, "Task ID\tTitle\tDescription\tCompleted\tCreated By\tCreated At\tUpdated At")
+	fmt.Fprintln(w, "-------\t-----\t-----------\t----------\t----------\t-----------\t-----------")
+
+	for _, task := range tasks {
+		fmt.Fprintf(w, "%v\t%v\t%v\t%v\t%v\t%v\t%v\n",
+			task.TaskId,
+			task.Title,
+			task.Description,
+			task.Completed,
+			task.CreatedBy,
+			task.CreatedBy,
+			task.UpdatedAt,
+		)
 	}
 
-	return string(bodyBytes), nil
+	w.Flush()
 }

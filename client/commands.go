@@ -1,8 +1,11 @@
 package client
 
 import (
-	"fmt"
+	"encoding/json"
+	"gofer/schemas"
+	"io"
 	"log"
+	"net/http"
 
 	"github.com/spf13/cobra"
 )
@@ -21,15 +24,33 @@ var listTasksCommand = &cobra.Command{
 		if err != nil {
 			log.Fatal(err)
 		}
+
 		params := make(map[string]string)
 		if !allFlag {
-			params["completed"] = "1"
+			params["completed"] = "0"
 		}
-		body, err := SendApiRequest("GET", "/tasks", nil, params)
+
+		resp, err := sendApiRequest("GET", "/tasks", nil, params)
 		if err != nil {
 			log.Fatal(err)
 		}
-		fmt.Println(body)
+
+		bodyBytes, err := io.ReadAll(resp.Body)
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		if resp.StatusCode != http.StatusOK {
+			log.Fatalf("Unsuccessful response: %v", string(bodyBytes))
+		}
+
+		var tasks []schemas.TaskResponse
+		err = json.Unmarshal(bodyBytes, &tasks)
+		if err != nil {
+			log.Fatalf("Error parsing response: %v", err)
+		}
+
+		printTasks(tasks)
 	},
 }
 
