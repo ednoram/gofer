@@ -3,7 +3,8 @@ SELECT * FROM task
 WHERE task_id = ? LIMIT 1;
 
 -- name: ListTasks :many
-SELECT * FROM task;
+SELECT * FROM task
+WHERE completed = COALESCE(?, completed);
 
 -- name: CreateTask :one
 INSERT INTO task (

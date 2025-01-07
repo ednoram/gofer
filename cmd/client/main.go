@@ -1,21 +1,12 @@
 package main
 
 import (
-	"log"
-
-	"github.com/spf13/cobra"
-
 	"gofer/client"
+	"log"
 )
 
-var rootCmd = &cobra.Command{
-	Use:   "gofer",
-	Short: "Gofer",
-	Long:  "Gofer - a simple task management tool",
-}
-
 func main() {
-	rootCmd.AddCommand(client.ListTasksCommand)
+	rootCmd := client.Init()
 
 	if err := rootCmd.Execute(); err != nil {
 		log.Fatal(err)

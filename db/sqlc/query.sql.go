@@ -90,10 +90,11 @@ func (q *Queries) GetTask(ctx context.Context, taskID int64) (Task, error) {
 
 const listTasks = `-- name: ListTasks :many
 SELECT task_id, title, description, completed, created_by, created_at, updated_at FROM task
+WHERE completed = COALESCE(?, completed)
 `
 
-func (q *Queries) ListTasks(ctx context.Context) ([]Task, error) {
-	rows, err := q.db.QueryContext(ctx, listTasks)
+func (q *Queries) ListTasks(ctx context.Context, completed sql.NullBool) ([]Task, error) {
+	rows, err := q.db.QueryContext(ctx, listTasks, completed)
 	if err != nil {
 		return nil, err
 	}
