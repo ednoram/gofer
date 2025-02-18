@@ -2,15 +2,14 @@ package handlers
 
 import (
 	"database/sql"
+	"gofer/db"
+	"gofer/db/sqlc"
+	"gofer/schemas"
 	"net/http"
 	"strconv"
 	"time"
 
 	"github.com/gin-gonic/gin"
-
-	"gofer/db"
-	"gofer/db/sqlc"
-	"gofer/schemas"
 )
 
 func CreateTask(c *gin.Context) {
@@ -153,7 +152,6 @@ func DeleteTask(c *gin.Context) {
 	}
 
 	err = db.GetQueries().DeleteTask(c, id)
-
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return

@@ -3,11 +3,10 @@ package db
 import (
 	"database/sql"
 	"fmt"
+	"gofer/db/sqlc"
 	"log"
 
 	_ "github.com/mattn/go-sqlite3"
-
-	"gofer/db/sqlc"
 )
 
 var database *sql.DB
@@ -25,7 +24,13 @@ func InitializeDatabase() {
 
 	// Test the connection
 	if err := database.Ping(); err != nil {
-		log.Fatal("Error pinging database: ", err)
+		log.Fatalf("Error pinging database: %v", err)
+	}
+
+	// Enforce foreign keys
+	_, err = database.Exec("PRAGMA foreign_keys = ON;")
+	if err != nil {
+		log.Fatalf("Error enabling foreign keys: %v", err)
 	}
 
 	fmt.Println("Successfully connected to the database!")

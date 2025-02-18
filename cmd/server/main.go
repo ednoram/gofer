@@ -1,13 +1,12 @@
 package main
 
 import (
-	"log"
-
-	"github.com/gin-gonic/gin"
-
 	"gofer/db"
 	"gofer/handlers"
 	"gofer/middleware"
+	"log"
+
+	"github.com/gin-gonic/gin"
 )
 
 func main() {

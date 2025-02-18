@@ -11,7 +11,7 @@ CREATE TABLE api_key (
   key_id INTEGER PRIMARY KEY AUTOINCREMENT,
   api_key VARCHAR(50) NOT NULL UNIQUE,
   user_id INTEGER NOT NULL,
-  FOREIGN KEY (user_id) REFERENCES user(user_id)
+  FOREIGN KEY (user_id) REFERENCES user(user_id) ON DELETE CASCADE
 );
 
 -- Create task table
@@ -23,6 +23,6 @@ CREATE TABLE task (
   created_by INTEGER NOT NULL,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  FOREIGN KEY (created_by) REFERENCES user(user_id)
+  FOREIGN KEY (created_by) REFERENCES user(user_id) ON DELETE SET NULL
 );
 

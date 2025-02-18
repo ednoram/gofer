@@ -4,12 +4,13 @@ import (
 	"crypto/rand"
 	"encoding/hex"
 	"fmt"
-	"log"
-
-	_ "github.com/mattn/go-sqlite3"
-
 	"gofer/db"
 	"gofer/utils"
+	"log"
+	"os"
+	"strconv"
+
+	_ "github.com/mattn/go-sqlite3"
 )
 
 func generateAPIKey() (string, error) {
@@ -33,7 +34,17 @@ func storeAPIKey(apiKey string, userId int) error {
 }
 
 func main() {
-	var userId int = 1 // Change this to the user ID you want to generate API key for
+	// Check if a argument is passed
+	if len(os.Args) < 2 {
+		log.Fatal("Usage: go run main.go <userId>")
+	}
+
+	userIdArg := os.Args[1]
+
+	userId, err := strconv.Atoi(userIdArg)
+	if err != nil {
+		log.Fatalf("Invalid argument userId: %v", err)
+	}
 
 	db.InitializeDatabase()
 	defer db.GetDbConn().Close()
