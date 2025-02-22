@@ -20,8 +20,8 @@ serve:
   go run cmd/server/main.go
 
 [group('code')]
-run-client:
-  go run cmd/client/main.go
+run-client command:
+  go run cmd/client/main.go {{command}}
 
 [group('code')]
 gen-api-key user_id:

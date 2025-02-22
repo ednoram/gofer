@@ -9,8 +9,10 @@ import (
 	"text/tabwriter"
 )
 
-var apiUrl string = "http://localhost:8080"
-var apiKeyVarName string = "GOFER_API_KEY"
+var (
+	apiUrl        string = "http://localhost:8080"
+	apiKeyVarName string = "GOFER_API_KEY"
+)
 
 func sendApiRequest(method string, path string, body []byte, params map[string]string) (*http.Response, error) {
 	req, err := http.NewRequest(method, apiUrl+path, bytes.NewBuffer(body))
@@ -51,8 +53,8 @@ func printTasks(tasks []schemas.TaskResponse) {
 			task.Description,
 			task.Completed,
 			task.CreatedBy,
-			task.CreatedBy,
-			task.UpdatedAt,
+			task.CreatedAt.Local().Format("2006-01-02 15:04:05"),
+			task.UpdatedAt.Local().Format("2006-01-02 15:04:05"),
 		)
 	}
 
