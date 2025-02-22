@@ -12,12 +12,6 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var rootCmd = &cobra.Command{
-	Use:   "gofer",
-	Short: "Gofer",
-	Long:  "Gofer - a simple task management tool",
-}
-
 var taskCmd = &cobra.Command{
 	Use:   "task",
 	Short: "Manage tasks",
@@ -117,7 +111,96 @@ var addTaskCmd = &cobra.Command{
 	},
 }
 
-func Init() *cobra.Command {
+var updateTaskCmd = &cobra.Command{
+	Use:   "update",
+	Short: "Update task",
+	Run: func(cmd *cobra.Command, args []string) {
+		taskId, err := cmd.Flags().GetInt("taskId")
+		if err != nil {
+			log.Fatal(err)
+		}
+		if taskId <= 0 {
+			log.Fatal("Task ID must be a positive integer")
+		}
+
+		title, err := cmd.Flags().GetString("title")
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		description, err := cmd.Flags().GetString("description")
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		completed, err := cmd.Flags().GetBool("completed")
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		// TODO: make update fields optional
+
+		createTaskData := schemas.CreateUpdateTask{
+			Title:       title,
+			Description: description,
+			Completed:   completed,
+		}
+		body, err := json.Marshal(createTaskData)
+		if err != nil {
+			log.Fatalf("Error marshaling data: %v", err)
+		}
+
+		endpoint := fmt.Sprintf("/tasks/%d", taskId)
+		resp, err := sendApiRequest("PUT", endpoint, body, nil)
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		bodyBytes, err := io.ReadAll(resp.Body)
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		if resp.StatusCode != http.StatusOK {
+			log.Fatalf("Unsuccessful response - status_code: %d, body: %s", resp.StatusCode, string(bodyBytes))
+		}
+
+		fmt.Println("Task updated")
+	},
+}
+
+var deleteTaskCmd = &cobra.Command{
+	Use:   "delete",
+	Short: "Delete task",
+	Run: func(cmd *cobra.Command, args []string) {
+		taskId, err := cmd.Flags().GetInt("taskId")
+		if err != nil {
+			log.Fatal(err)
+		}
+		if taskId <= 0 {
+			log.Fatal("Task ID must be a positive integer")
+		}
+
+		endpoint := fmt.Sprintf("/tasks/%d", taskId)
+		resp, err := sendApiRequest("DELETE", endpoint, nil, nil)
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		bodyBytes, err := io.ReadAll(resp.Body)
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		if resp.StatusCode != http.StatusOK {
+			log.Fatalf("Unsuccessful response - status_code: %d, body: %s", resp.StatusCode, string(bodyBytes))
+		}
+
+		fmt.Println("Task deleted")
+	},
+}
+
+func initTaskCmd() *cobra.Command {
 	// List tasks command
 	taskCmd.AddCommand(listTasksCmd)
 	listTasksCmd.Flags().Bool("all", false, "--all")
@@ -128,8 +211,16 @@ func Init() *cobra.Command {
 	addTaskCmd.Flags().String("description", "", "--description")
 	addTaskCmd.Flags().Bool("completed", false, "--completed")
 
-	// Task command
-	rootCmd.AddCommand(taskCmd)
+	// Update task command
+	taskCmd.AddCommand(updateTaskCmd)
+	updateTaskCmd.Flags().Int("taskId", 0, "--taskId")
+	updateTaskCmd.Flags().String("title", "", "--title")
+	updateTaskCmd.Flags().String("description", "", "--description")
+	updateTaskCmd.Flags().Bool("completed", false, "--completed")
 
-	return rootCmd
+	// Delete task command
+	taskCmd.AddCommand(deleteTaskCmd)
+	deleteTaskCmd.Flags().Int("taskId", 0, "--taskId")
+
+	return taskCmd
 }
