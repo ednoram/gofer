@@ -27,3 +27,7 @@ API key authentication is used for calling the API.
 You can generate an API key by running `just gen-api-key <user_id>`.
 This will print the API key and store the hash in the database.
 Set `GOFER_API_KEY` environment variable before running the client.
+
+## Configuration
+
+Application configuration is at `config/config.toml`. You can modify it if needed.

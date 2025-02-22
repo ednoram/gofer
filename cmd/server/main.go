@@ -1,6 +1,8 @@
 package main
 
 import (
+	"fmt"
+	"gofer/config"
 	"gofer/db"
 	"gofer/handlers"
 	"gofer/middleware"
@@ -26,7 +28,10 @@ func main() {
 	r.DELETE("/tasks/:id", handlers.DeleteTask)
 
 	// Start the server
-	if err := r.Run(":8080"); err != nil {
+	port := config.GetConfig().Server.Port
+	address := fmt.Sprintf(":%d", port)
+
+	if err := r.Run(address); err != nil {
 		log.Fatalf("Could not start server: %v", err)
 	}
 }

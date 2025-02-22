@@ -3,18 +3,17 @@ package client
 import (
 	"bytes"
 	"fmt"
+	"gofer/config"
 	"gofer/schemas"
 	"net/http"
 	"os"
 	"text/tabwriter"
 )
 
-var (
-	apiUrl        string = "http://localhost:8080"
-	apiKeyVarName string = "GOFER_API_KEY"
-)
-
 func sendApiRequest(method string, path string, body []byte, params map[string]string) (*http.Response, error) {
+	apiUrl := config.GetConfig().Client.ApiUrl
+	apiKeyVarName := config.GetConfig().Client.ApiKeyVarName
+
 	req, err := http.NewRequest(method, apiUrl+path, bytes.NewBuffer(body))
 	if err != nil {
 		return nil, err
