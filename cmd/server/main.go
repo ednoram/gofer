@@ -13,6 +13,7 @@ import (
 
 func main() {
 	log.Println("Starting server")
+
 	db.InitializeDatabase()
 
 	r := gin.Default()
@@ -27,10 +28,11 @@ func main() {
 	r.PATCH("/tasks/:id", handlers.UpdateTask)
 	r.DELETE("/tasks/:id", handlers.DeleteTask)
 
-	// Start the server
-	port := config.GetConfig().Server.Port
-	address := fmt.Sprintf(":%d", port)
+	// Get port configuration
+	portStr := config.GetConfig().Port
+	address := fmt.Sprintf(":%d", portStr)
 
+	// Start the server
 	if err := r.Run(address); err != nil {
 		log.Fatalf("Could not start server: %v", err)
 	}

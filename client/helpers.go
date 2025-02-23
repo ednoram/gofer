@@ -11,16 +11,15 @@ import (
 )
 
 func sendApiRequest(method string, path string, body []byte, params map[string]string) (*http.Response, error) {
-	apiUrl := config.GetConfig().Client.ApiUrl
+	config := config.GetConfig()
 
-	req, err := http.NewRequest(method, apiUrl+path, bytes.NewBuffer(body))
+	req, err := http.NewRequest(method, config.ApiUrl+path, bytes.NewBuffer(body))
 	if err != nil {
 		return nil, err
 	}
 
 	// API key for authentication
-	apiKey := os.Getenv("GOFER_API_KEY")
-	req.Header.Set("x-api-key", apiKey)
+	req.Header.Set("x-api-key", config.ApiKey)
 
 	// Add query parameters to URL object
 	query := req.URL.Query()

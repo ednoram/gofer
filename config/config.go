@@ -2,40 +2,37 @@ package config
 
 import (
 	"log"
-	"os"
-	"path/filepath"
 	"sync"
 
-	"github.com/BurntSushi/toml"
+	"github.com/spf13/viper"
 )
 
 type Config struct {
-	Server struct {
-		Port int `toml:"port"`
-	} `toml:"server"`
-	Client struct {
-		ApiUrl string `toml:"api_url"`
-	} `toml:"client"`
+	Port   int    `mapstructure:"PORT"`
+	ApiUrl string `mapstructure:"GOFER_API_URL"`
+	ApiKey string `mapstructure:"GOFER_API_KEY"`
 }
 
 var (
-	config   *Config
+	cfg      *Config
 	loadOnce sync.Once
 )
 
-func GetConfig() *Config {
-	cwd, err := os.Getwd()
-	if err != nil {
-		log.Fatalf("Error getting working directory: %v", err)
+func initConfig() {
+	viper.SetConfigFile(".env")
+	viper.AutomaticEnv()
+
+	if err := viper.ReadInConfig(); err != nil {
+		log.Fatalf("Error reading config file, %s", err)
 	}
 
-	filePath := filepath.Join(cwd, "config", "config.toml")
+	if err := viper.Unmarshal(&cfg); err != nil {
+		log.Fatalf("Error unmarshaling config: %v", err)
+	}
+}
 
-	loadOnce.Do(func() {
-		if _, err := toml.DecodeFile(filePath, &config); err != nil {
-			log.Fatalf("Error decoding TOML file: %v", err)
-		}
-	})
+func GetConfig() *Config {
+	loadOnce.Do(initConfig)
 
-	return config
+	return cfg
 }

@@ -12,7 +12,7 @@ Install the required tools:
 - sqlc (v1.28.0) - <https://docs.sqlc.dev/en/stable/overview/install.html>
 - just - <https://github.com/casey/just>
 
-Run `just init` to initialize the environment.
+Run `just init` to initialize your development environment.
 
 See `justfile` for other actions.
 
@@ -28,12 +28,12 @@ You can generate an API key by running `just gen-api-key <user_id>`.
 This will print the API key and store the hash in the database.
 Set `GOFER_API_KEY` environment variable before running the client.
 
-## Configuration
+## Env file
 
-Application configuration is at `config/config.toml`. You can modify it if needed.
+Create `.env` file in your working directory. See `.env.example`.
 
 ## Build
 
-Run `just build-server` to build the server and `just build-client` to build the client.
+Run `just build` to build API server and CLI client.
 Build output will be saved at `./bin/`.
 Run the binaries from project root for using correct relative paths to configuration and database files.
