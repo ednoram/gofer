@@ -3,4 +3,3 @@ port = 8000
 
 [client]
 api_url = "http://localhost:8000"
-api_key_var_name = "GOFER_API_KEY"

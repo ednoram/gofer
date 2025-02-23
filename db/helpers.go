@@ -5,25 +5,31 @@ import (
 	"fmt"
 	"gofer/db/sqlc"
 	"log"
+	"os"
+	"path/filepath"
 
 	_ "github.com/mattn/go-sqlite3"
 )
 
 var database *sql.DB
 
-var dbPath string = "gofer.db"
-
 func InitializeDatabase() {
 	log.Println("Initializing database")
 
-	var err error
+	cwd, err := os.Getwd()
+	if err != nil {
+		log.Fatalf("Error getting working directory: %v", err)
+	}
+
+	dbPath := filepath.Join(cwd, "db", "gofer.db")
+
 	database, err = sql.Open("sqlite3", dbPath)
 	if err != nil {
-		log.Fatal("Error opening database: ", err)
+		log.Fatalf("Error opening database: %v", err)
 	}
 
 	// Test the connection
-	if err := database.Ping(); err != nil {
+	if err = database.Ping(); err != nil {
 		log.Fatalf("Error pinging database: %v", err)
 	}
 

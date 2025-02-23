@@ -12,7 +12,6 @@ import (
 
 func sendApiRequest(method string, path string, body []byte, params map[string]string) (*http.Response, error) {
 	apiUrl := config.GetConfig().Client.ApiUrl
-	apiKeyVarName := config.GetConfig().Client.ApiKeyVarName
 
 	req, err := http.NewRequest(method, apiUrl+path, bytes.NewBuffer(body))
 	if err != nil {
@@ -20,7 +19,7 @@ func sendApiRequest(method string, path string, body []byte, params map[string]s
 	}
 
 	// API key for authentication
-	apiKey := os.Getenv(apiKeyVarName)
+	apiKey := os.Getenv("GOFER_API_KEY")
 	req.Header.Set("x-api-key", apiKey)
 
 	// Add query parameters to URL object

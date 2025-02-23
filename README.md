@@ -4,7 +4,7 @@ Gofer is a simple tool for managing your errands and tasks.
 
 One of the hosts in the network functions as the central HTTP server. All other hosts interact with the service using the Gofer CLI client.
 
-## Usage
+## Setup
 
 Install the required tools:
 
@@ -18,7 +18,7 @@ See `justfile` for other actions.
 
 ## Database
 
-After completing the initialization step, `gofer.db` sqlite database will be created in the root directory of the project with a default user `user`.
+After completing the initialization step, sqlite database file will be created at `db/gofer.db`.
 User management is handled manually through the database.
 
 ## Authentication
@@ -31,3 +31,9 @@ Set `GOFER_API_KEY` environment variable before running the client.
 ## Configuration
 
 Application configuration is at `config/config.toml`. You can modify it if needed.
+
+## Build
+
+Run `just build-server` to build the server and `just build-client` to build the client.
+Build output will be saved at `./bin/`.
+Run the binaries from project root for using correct relative paths to configuration and database files.

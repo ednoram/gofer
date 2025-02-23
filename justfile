@@ -26,3 +26,12 @@ run-client command:
 [group('code')]
 gen-api-key user_id:
   go run cmd/gen_api_key/main.go {{user_id}}
+
+
+[group('build')]
+build-server:
+  go build -o bin/server cmd/server/main.go
+
+[group('build')]
+build-client:
+  go build -o bin/client cmd/client/main.go
