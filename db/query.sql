@@ -16,11 +16,12 @@ RETURNING *;
 
 -- name: UpdateTask :exec
 UPDATE task
-set title = ?,
-description = ?,
-completed = ?,
-updated_at = ?
-WHERE task_id = ?;
+set updated_at = sqlc.arg('updated_at'),
+title = COALESCE(sqlc.narg('title'),  title),
+description = COALESCE(sqlc.narg('description'), description),
+completed = COALESCE(sqlc.narg('completed'),  completed)
+
+WHERE task_id = sqlc.arg('task_id');
 
 -- name: DeleteTask :exec
 DELETE FROM task

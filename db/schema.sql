@@ -18,7 +18,7 @@ CREATE TABLE api_key (
 CREATE TABLE task (
   task_id INTEGER PRIMARY KEY AUTOINCREMENT,
   title VARCHAR(30) NOT NULL,
-  description TEXT,
+  description VARCHAR(100),
   completed BOOLEAN,
   created_by INTEGER NOT NULL,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,

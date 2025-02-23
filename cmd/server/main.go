@@ -24,7 +24,7 @@ func main() {
 	r.POST("/tasks", handlers.CreateTask)
 	r.GET("/tasks", handlers.GetTasks)
 	r.GET("/tasks/:id", handlers.GetTask)
-	r.PUT("/tasks/:id", handlers.UpdateTask)
+	r.PATCH("/tasks/:id", handlers.UpdateTask)
 	r.DELETE("/tasks/:id", handlers.DeleteTask)
 
 	// Start the server

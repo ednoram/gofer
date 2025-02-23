@@ -77,7 +77,7 @@ var addTaskCmd = &cobra.Command{
 			log.Fatal(err)
 		}
 
-		createTaskData := schemas.CreateUpdateTask{
+		createTaskData := schemas.CreateTask{
 			Title:       title,
 			Description: description,
 			Completed:   completed,
@@ -138,20 +138,25 @@ var updateTaskCmd = &cobra.Command{
 			log.Fatal(err)
 		}
 
-		// TODO: make update fields optional
-
-		createTaskData := schemas.CreateUpdateTask{
-			Title:       title,
-			Description: description,
-			Completed:   completed,
+		// Check explicitly set flags
+		updateTaskData := schemas.UpdateTask{}
+		if cmd.Flags().Lookup("title").Changed {
+			updateTaskData.Title = &title
 		}
-		body, err := json.Marshal(createTaskData)
+		if cmd.Flags().Lookup("description").Changed {
+			updateTaskData.Description = &description
+		}
+		if cmd.Flags().Lookup("completed").Changed {
+			updateTaskData.Completed = &completed
+		}
+
+		body, err := json.Marshal(updateTaskData)
 		if err != nil {
 			log.Fatalf("Error marshaling data: %v", err)
 		}
 
 		endpoint := fmt.Sprintf("/tasks/%d", taskId)
-		resp, err := sendApiRequest("PUT", endpoint, body, nil)
+		resp, err := sendApiRequest("PATCH", endpoint, body, nil)
 		if err != nil {
 			log.Fatal(err)
 		}

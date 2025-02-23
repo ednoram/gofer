@@ -13,7 +13,7 @@ import (
 )
 
 func CreateTask(c *gin.Context) {
-	var req schemas.CreateUpdateTask
+	var req schemas.CreateTask
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
@@ -55,12 +55,13 @@ func CreateTask(c *gin.Context) {
 
 func GetTasks(c *gin.Context) {
 	completedParam := c.Query("completed")
+	validCompletionValues := map[string]bool{"1": true, "0": false}
 
-	completed := sql.NullBool{Valid: false}
-	if completedParam == "1" {
-		completed = sql.NullBool{Bool: true, Valid: true}
-	} else if completedParam == "0" {
-		completed = sql.NullBool{Bool: false, Valid: true}
+	var completed sql.NullBool
+	if value, exists := validCompletionValues[completedParam]; exists {
+		completed = sql.NullBool{Bool: value, Valid: true}
+	} else {
+		completed = sql.NullBool{Valid: false}
 	}
 
 	tasks, err := db.GetQueries().ListTasks(c, completed)
@@ -120,7 +121,7 @@ func UpdateTask(c *gin.Context) {
 		return
 	}
 
-	var req schemas.CreateUpdateTask
+	var req schemas.UpdateTask
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
@@ -128,13 +129,21 @@ func UpdateTask(c *gin.Context) {
 
 	updateTime := time.Now().UTC()
 
-	err = db.GetQueries().UpdateTask(c, sqlc.UpdateTaskParams{
-		TaskID:      id,
-		Title:       req.Title,
-		Description: sql.NullString{String: req.Description, Valid: true},
-		Completed:   sql.NullBool{Bool: req.Completed, Valid: true},
-		UpdatedAt:   sql.NullTime{Time: updateTime, Valid: true},
-	})
+	updateParams := sqlc.UpdateTaskParams{
+		TaskID:    id,
+		UpdatedAt: sql.NullTime{Valid: true, Time: updateTime},
+	}
+	if req.Title != nil {
+		updateParams.Title = sql.NullString{Valid: true, String: *req.Title}
+	}
+	if req.Description != nil {
+		updateParams.Description = sql.NullString{Valid: true, String: *req.Description}
+	}
+	if req.Completed != nil {
+		updateParams.Completed = sql.NullBool{Valid: true, Bool: *req.Completed}
+	}
+
+	err = db.GetQueries().UpdateTask(c, updateParams)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return

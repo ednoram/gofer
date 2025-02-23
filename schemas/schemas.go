@@ -2,10 +2,16 @@ package schemas
 
 import "time"
 
-type CreateUpdateTask struct {
+type CreateTask struct {
 	Title       string `json:"title" binding:"required"`
-	Description string `json:"description" binding:"max=100"`
+	Description string `json:"description"`
 	Completed   bool   `json:"completed"`
+}
+
+type UpdateTask struct {
+	Title       *string `json:"title,omitempty"`
+	Description *string `json:"description,omitempty"`
+	Completed   *bool   `json:"completed,omitempty"`
 }
 
 type TaskResponse struct {
